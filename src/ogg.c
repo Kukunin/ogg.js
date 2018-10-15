@@ -16,7 +16,6 @@ typedef struct {
 AVOgg *AVOggInit() {
   AVOgg *ogg = calloc(1, sizeof(AVOgg));
   ogg->state = calloc(1, sizeof(ogg_sync_state));
-  ogg->stream = calloc(1, sizeof(ogg_stream_state));
   assert(!ogg_sync_init(ogg->state));
   assert(ogg_sync_pageout(ogg->state, &ogg->page) != 1);
   return ogg;
@@ -36,6 +35,10 @@ int AVOggRead(AVOgg *ogg, int buflen, AVCallback callback) {
     int serial = ogg_page_serialno(&ogg->page);
 
     if (ogg_page_bos(&ogg->page)) {
+      if(ogg->stream) {
+        ogg_stream_destroy(ogg->stream);
+      }
+      ogg->stream = calloc(1, sizeof(ogg_stream_state));
       assert(!ogg_stream_init(ogg->stream, serial));
     }
 
@@ -58,6 +61,8 @@ int AVOggRead(AVOgg *ogg, int buflen, AVCallback callback) {
 
 void AVOggDestroy(AVOgg *ogg) {
   ogg_sync_destroy(ogg->state);
-  ogg_stream_destroy(ogg->stream);
+  if(ogg->stream) {
+    ogg_stream_destroy(ogg->stream);
+  }
   free(ogg);
 }
