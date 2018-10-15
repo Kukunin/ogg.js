@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 #include <ogg/ogg.h>
 
 typedef void (*AVCallback)(unsigned char *, int);
@@ -27,17 +28,26 @@ int AVOggRead(AVOgg *ogg, int buflen, AVCallback callback) {
   assert(!ogg_sync_wrote(&ogg->state, buflen));
 
   // read ogg pages
-  while (ogg_sync_pageout(&ogg->state, &ogg->page) == 1) {
+  int pageout, packetout;
+  while ((pageout = ogg_sync_pageout(&ogg->state, &ogg->page)) == 1) {
     int serial = ogg_page_serialno(&ogg->page);
-  
-    if (ogg_page_bos(&ogg->page))
+
+    if (ogg_page_bos(&ogg->page)) {
       assert(!ogg_stream_init(&ogg->stream, serial));
-  
+    }
+
     assert(!ogg_stream_pagein(&ogg->stream, &ogg->page));
-  
+
     // read packets
-    while (ogg_stream_packetout(&ogg->stream, &ogg->packet) == 1)
+    while ((packetout = ogg_stream_packetout(&ogg->stream, &ogg->packet)) == 1) {
       callback(ogg->packet.packet, ogg->packet.bytes);
+    }
+    if(packetout == -1) {
+      fprintf(stderr, "OGG stream is out of sync\n");
+    }
+  }
+  if(pageout == -1) {
+    fprintf(stderr, "OGG page is out of sync\n");
   }
 
   return 0;
