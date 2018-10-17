@@ -14,7 +14,7 @@ if [ ! -f configure ]; then
 fi
 
 # finally, run configuration script
-emconfigure ./configure --prefix="`pwd`" --disable-shared --enable-static
+emconfigure ./configure --prefix="`pwd`" --disable-shared --enable-static --disable-crc
 
 # compile libogg
 emmake make
