@@ -1,8 +1,8 @@
 build/libogg.js:
 	./compileOgg.sh
-	
+
 libogg: build/libogg.js
-	
+
 browser: src/*.js build/libogg.js
 	mkdir -p build/
 	./node_modules/.bin/browserify \
@@ -12,8 +12,8 @@ browser: src/*.js build/libogg.js
 		> build/ogg.js
 
 clean:
-	cd libogg && make clean
-	rm -f libogg/configure
+	cd ogg && make clean
+	rm -f ogg/configure
 	rm -rf build
 
 .PHONY: libogg browser clean
